@@ -60,32 +60,32 @@ idea {
 
 task runServer(type: JavaExec) {
     classpath = sourceSets.main.runtimeClasspath
-    main = 'be.msec.labgrpc.TutorialServer'
+    main = 'be.msec.labgrpc.ChatServer'
 }
 
 task runClient(type: JavaExec) {
     classpath = sourceSets.main.runtimeClasspath
-    main = 'be.msec.labgrpc.TutorialClient'
+    main = 'be.msec.labgrpc.ChatClient'
 }
 
 startScripts.enabled = false
 
-task helloWorldServer(type: CreateStartScripts) {
-    mainClassName = "be.msec.grpclab.TutorialServer"
-    applicationName = "hello-world-server"
+task chatServer(type: CreateStartScripts) {
+    mainClassName = "be.msec.grpclab.ChatServer"
+    applicationName = "chat-server"
     outputDir = new File(project.buildDir, 'tmp')
     classpath = jar.outputs.files + project.configurations.runtime
 }
 
-task helloWorldClient(type: CreateStartScripts) {
-    mainClassName = "be.msec.grpclab.TutorialClient"
-    applicationName = "hello-world-client"
+task chatClient(type: CreateStartScripts) {
+    mainClassName = "be.msec.grpclab.ChatClient"
+    applicationName = "chat-client"
     outputDir = new File(project.buildDir, 'tmp')
     classpath = jar.outputs.files + project.configurations.runtime
 }
 
 applicationDistribution.into("bin") {
-    from(helloWorldServer)
-    from(helloWorldClient)
+    from(chatServer)
+    from(chatClient)
     fileMode = 0755
 }

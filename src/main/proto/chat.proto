@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "be.msec.labgrpc";
+option java_outer_classname = "ChatProto";
+option objc_class_prefix = "HLW";
+
+package be.msec.labgrpc;
+
+service ChatService {
+  rpc broadCast(stream Message) returns (stream Message){}
+}
+
+message Message{
+  string txt = 1;
+}
