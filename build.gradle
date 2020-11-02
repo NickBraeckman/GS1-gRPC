@@ -60,12 +60,12 @@ idea {
 
 task runServer(type: JavaExec) {
     classpath = sourceSets.main.runtimeClasspath
-    main = 'be.msec.labgrpc.ChatServer'
+    main = 'be.msec.labgrpc.server.ChatServer'
 }
 
 task runClient(type: JavaExec) {
     classpath = sourceSets.main.runtimeClasspath
-    main = 'be.msec.labgrpc.ChatClient'
+    main = 'be.msec.labgrpc.client.ChatApplication'
 }
 
 startScripts.enabled = false
