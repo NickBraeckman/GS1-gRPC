@@ -48,7 +48,7 @@ public class ChatClient {
                 user = new User(username);
                 info("Successfully connected to server.");
                 Platform.runLater(() -> messages.add(new Message(user, MessageType.CONNECTION_SUCCESS, "").getTextFormat()));
-                broadcast(new Message(user, MessageType.CONNECTION_SUCCESS_BROADCAST, "").getTextFormat());
+                sendBroadcast(new Message(user, MessageType.CONNECTION_SUCCESS_BROADCAST, "").getTextFormat());
             } else {
                 info("Username already taken, choose another one.");
                 Platform.runLater(() -> messages.add("Username already taken, choose another one."));
@@ -86,13 +86,13 @@ public class ChatClient {
 
     // send a message
     // add the message to the shared message's list at the serverside
-    public void broadcast(String text) {
+    public void sendBroadcast(String text) {
 
         MessageText messageText = MessageText.newBuilder().setText(text).setSender(user.getName()).build();
 
         try {
             info("Broadcasting...");
-            blockingStub.broadcast(messageText);
+            blockingStub.sendBroadcast(messageText);
         } catch (StatusRuntimeException e) {
             error(e.getMessage());
             Platform.runLater(() -> messages.add("Could not connect with server. Try again."));

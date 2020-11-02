@@ -18,20 +18,20 @@ public class ChatServerController {
         users = new HashMap<>();
     }
 
-    public void connectUser(String name) throws DuplicateUsernameException {
-        if (users.containsKey(name)) {
-            throw new DuplicateUsernameException(name);
+    public void connectUser(String username) throws DuplicateUsernameException {
+        if (users.containsKey(username)) {
+            throw new DuplicateUsernameException(username);
         } else {
-            User user = new User(name);
-            users.put(name, user);
+            User user = new User(username);
+            users.put(username, user);
         }
     }
 
-    public User findUserByName(String name) throws UserNotFoundException {
-        User u = users.get(name);
+    public User findUserByName(String username) throws UserNotFoundException {
+        User u = users.get(username);
         if (u != null) {
             return u;
-        } else throw new UserNotFoundException(name);
+        } else throw new UserNotFoundException(username);
     }
 
     // add message to list and notify the synchronization method

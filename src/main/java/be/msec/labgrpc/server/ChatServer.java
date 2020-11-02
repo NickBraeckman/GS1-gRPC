@@ -97,7 +97,7 @@ public class ChatServer {
         // send a message to all users
         // put a message in the message list, that is accessible by all users, and notify the sync method
         @Override
-        public void broadcast(MessageText request, StreamObserver<Empty> responseObserver) {
+        public void sendBroadcast(MessageText request, StreamObserver<Empty> responseObserver) {
             try {
                 User sender = serverController.findUserByName(request.getSender());
                 serverController.addToMessages(new Message(sender, MessageType.BROADCAST, request.getText()), mutex);

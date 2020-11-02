@@ -1,8 +1,5 @@
 package be.msec.labgrpc.client;
 
-import be.msec.labgrpc.DuplicateUsernameException;
-import be.msec.labgrpc.Message;
-import be.msec.labgrpc.MessageType;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.ListView;
@@ -80,7 +77,7 @@ public class ClientController {
     public void sendButtonAction() throws IOException {
         String text = msgField.getText();
         if (!text.isEmpty()) {
-            client.broadcast(text);
+            client.sendBroadcast(text);
             msgField.clear();
         } else {
             msgField.setText(ERROR_EMPTY_MESSAGE);

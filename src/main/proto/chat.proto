@@ -8,7 +8,7 @@ option objc_class_prefix = "HLW";
 package be.msec.labgrpc;
 
 service ChatService {
-  rpc broadcast(MessageText) returns (Empty){}
+  rpc sendBroadcast(MessageText) returns (Empty){}
   rpc connectUser(UserCredentials) returns (ConnectMessage){}
   rpc syncMessages(Empty) returns (stream MessageText){}
 }
