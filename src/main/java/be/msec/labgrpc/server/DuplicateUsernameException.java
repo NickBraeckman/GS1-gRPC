@@ -1,4 +1,4 @@
-package be.msec.labgrpc;
+package be.msec.labgrpc.server;
 
 public class DuplicateUsernameException extends Exception{
     public DuplicateUsernameException(String message) {super(message);}

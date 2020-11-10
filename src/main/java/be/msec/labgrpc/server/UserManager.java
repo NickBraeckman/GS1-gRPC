@@ -1,19 +1,18 @@
 package be.msec.labgrpc.server;
 
-import be.msec.labgrpc.DuplicateUsernameException;
-import be.msec.labgrpc.Message;
 import be.msec.labgrpc.User;
+import be.msec.labgrpc.UserNotFoundException;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class ChatServerController {
+public class UserManager {
     private final List<Message> messages;
     private final Map<String, User> users;
 
-    public ChatServerController() {
+    public UserManager() {
         messages = new ArrayList<>();
         users = new HashMap<>();
     }
@@ -24,6 +23,14 @@ public class ChatServerController {
         } else {
             User user = new User(username);
             users.put(username, user);
+        }
+    }
+
+    public void disconnectUser(String username) throws UserNotFoundException {
+        if (users.containsKey(username)) {
+            users.remove(username);
+        } else {
+            throw new UserNotFoundException("Could not find user: " + username);
         }
     }
 
@@ -40,14 +47,24 @@ public class ChatServerController {
             try {
                 messages.add(message);
                 mutex.notifyAll();
-            } catch (Exception e){
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }
 
     }
 
-    public Message getLastMessage() {
-        return messages.get(messages.size() - 1);
+    public Message getLastMessage(String userName) {
+        Message msg;
+        if (!messages.isEmpty()) {
+            msg = messages.get(messages.size() - 1);
+            // check if message is intended for user
+            if (msg.getType() == MessageType.BROADCAST || (msg.getType() == MessageType.PRIVATE && msg.getReceiverString() == userName)) {
+                return msg;
+            }
+        } else {
+            return null;
+        }
+        return null;
     }
 }

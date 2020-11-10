@@ -1,6 +1,7 @@
 package be.msec.labgrpc.client;
 
 import be.msec.labgrpc.*;
+import be.msec.labgrpc.UserNotFoundException;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.StatusRuntimeException;
@@ -18,6 +19,7 @@ public class ChatClient {
     private static final Logger logger = Logger.getLogger(ChatClient.class.getName());
 
     private User user;
+    private String text;
     private final ObservableList<String> messages;
     private final ManagedChannel channel;
     private final ChatServiceGrpc.ChatServiceStub asyncStub;
@@ -35,25 +37,24 @@ public class ChatClient {
         info("Client started");
     }
 
-    public void leave() throws InterruptedException {
-        channel.shutdown().awaitTermination(5, TimeUnit.SECONDS);
-    }
-
     public void connectUser(String username) {
-        UserCredentials credentials = UserCredentials.newBuilder().setName(username).build();
+        UserInfo userInfo = UserInfo.newBuilder().setName(username).build();
         ConnectMessage response;
         try {
-            response = blockingStub.connectUser(credentials);
+            response = blockingStub.connectUser(userInfo);
             if (response.getIsConnected()) {
                 user = new User(username);
                 info("Successfully connected to server.");
-                Platform.runLater(() -> messages.add(new Message(user, MessageType.CONNECTION_SUCCESS, "").getTextFormat()));
-                sendBroadcast(new Message(user, MessageType.CONNECTION_SUCCESS_BROADCAST, "").getTextFormat());
+
+                Platform.runLater(() -> messages.add("Welcome to the chat " + username + " !"));
+
+                sendBroadcastMsg(username + " has entered the chat");
+
             } else {
                 info("Username already taken, choose another one.");
                 Platform.runLater(() -> messages.add("Username already taken, choose another one."));
             }
-        } catch (StatusRuntimeException e) {
+        } catch (StatusRuntimeException | UserNotFoundException e) {
             error(e.getMessage());
         }
     }
@@ -78,7 +79,7 @@ public class ChatClient {
             }
         };
         try {
-            asyncStub.syncMessages(Empty.newBuilder().build(), observer);
+            asyncStub.syncMessages(UserInfo.newBuilder().setName(user.getName()).build(), observer);
         } catch (Exception e) {
             error(e.getMessage());
         }
@@ -86,16 +87,56 @@ public class ChatClient {
 
     // send a message
     // add the message to the shared message's list at the serverside
-    public void sendBroadcast(String text) {
+    public void sendBroadcastMsg(String text) throws UserNotFoundException {
 
-        MessageText messageText = MessageText.newBuilder().setText(text).setSender(user.getName()).build();
+        if (user != null) {
+            MessageText messageText = MessageText.newBuilder().setText(text).setSender(user.getName()).build();
+            try {
+                info("Broadcasting...");
+                blockingStub.sendBroadcastMsg(messageText);
+            } catch (StatusRuntimeException e) {
+                error(e.getMessage());
+                Platform.runLater(() -> messages.add("Could not connect with server. Try again."));
+            }
+        } else {
+            throw new UserNotFoundException("Could not find user");
+        }
+    }
 
+    public void sendPrivateMsg(String text, String receiverName) throws UserNotFoundException {
+
+        if (user != null) {
+            // make standard message
+            MessageText messageText = MessageText.newBuilder().setText(text).setSender(user.getName()).build();
+            // make private message intended for receiver
+            PrivateMessageText privateMessageText = PrivateMessageText.newBuilder().setMessageText(messageText).setReceiver(receiverName).build();
+            try {
+                info("Send private message...");
+                blockingStub.sendPrivateMsg(privateMessageText);
+            } catch (StatusRuntimeException e) {
+                error(e.getMessage());
+                Platform.runLater(() -> messages.add("Could not connect with server. Try again."));
+            }
+        } else {
+            throw new UserNotFoundException("Could not find user");
+        }
+    }
+
+    public void leave() throws InterruptedException {
+        UserInfo userInfo = UserInfo.newBuilder().setName(user.getName()).build();
+        DisconnectMessage response;
         try {
-            info("Broadcasting...");
-            blockingStub.sendBroadcast(messageText);
-        } catch (StatusRuntimeException e) {
+            response = blockingStub.disconnectUser(userInfo);
+            if (response.getIsDisconnected()) {
+                info("Successfully disconnected from server.");
+                sendBroadcastMsg(user.getName() + " has left the chat");
+                channel.shutdown().awaitTermination(5, TimeUnit.SECONDS);
+            } else {
+                info("Failed to disconnect from server");
+                Platform.runLater(() -> messages.add("Failed to disconnect from server, try again."));
+            }
+        } catch (StatusRuntimeException | UserNotFoundException e) {
             error(e.getMessage());
-            Platform.runLater(() -> messages.add("Could not connect with server. Try again."));
         }
     }
 

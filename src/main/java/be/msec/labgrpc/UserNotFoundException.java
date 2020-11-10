@@ -1,4 +1,4 @@
-package be.msec.labgrpc.server;
+package be.msec.labgrpc;
 
 public class UserNotFoundException extends Exception {
     public UserNotFoundException(String msg){super(msg);}

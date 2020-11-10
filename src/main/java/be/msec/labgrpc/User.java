@@ -1,6 +1,5 @@
 package be.msec.labgrpc;
 
-import java.util.Objects;
 import java.util.Random;
 
 public class User {

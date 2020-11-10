@@ -2,14 +2,12 @@ package be.msec.labgrpc.server;
 
 
 import be.msec.labgrpc.*;
-import be.msec.labgrpc.client.ChatClient;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.grpc.stub.StreamObserver;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
-import java.util.LinkedHashSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -19,7 +17,7 @@ public class ChatServer {
     private static final Object mutex = new Object();
 
     private final int portNumber;
-    private static ChatServerController serverController;
+    private static UserManager userManager;
     private final Server server;
     private static boolean isRunning;
 
@@ -29,8 +27,8 @@ public class ChatServer {
 
     public ChatServer(ServerBuilder<?> serverBuilder, int portNumber) {
         this.portNumber = portNumber;
-        if (serverController == null) {
-            serverController = new ChatServerController();
+        if (userManager == null) {
+            userManager = new UserManager();
         }
         server = serverBuilder.addService(new ChatService()).build();
     }
@@ -80,10 +78,10 @@ public class ChatServer {
 
         // user tries to connect
         @Override
-        public void connectUser(UserCredentials request, StreamObserver<ConnectMessage> responseObserver) {
+        public void connectUser(UserInfo request, StreamObserver<ConnectMessage> responseObserver) {
             try {
                 info(request.getName() + " is connecting to server.");
-                serverController.connectUser(request.getName());
+                userManager.connectUser(request.getName());
                 responseObserver.onNext(ConnectMessage.newBuilder().setUsername(request.getName()).setIsConnected(true).build());
                 info(request.getName() + " is connected to server.");
                 responseObserver.onCompleted();
@@ -97,11 +95,25 @@ public class ChatServer {
         // send a message to all users
         // put a message in the message list, that is accessible by all users, and notify the sync method
         @Override
-        public void sendBroadcast(MessageText request, StreamObserver<Empty> responseObserver) {
+        public void sendBroadcastMsg(MessageText request, StreamObserver<Empty> responseObserver) {
             try {
-                User sender = serverController.findUserByName(request.getSender());
-                serverController.addToMessages(new Message(sender, MessageType.BROADCAST, request.getText()), mutex);
-                info(request.getSender()+ " is broadcasting:" + request.getText());
+                User sender = userManager.findUserByName(request.getSender());
+                userManager.addToMessages(new Message(sender, MessageType.BROADCAST, request.getText()), mutex);
+                info(request.getSender() + " is broadcasting:" + request.getText());
+                responseObserver.onNext(Empty.newBuilder().build());
+                responseObserver.onCompleted();
+            } catch (UserNotFoundException e) {
+                e.printStackTrace();
+                responseObserver.onCompleted();
+            }
+        }
+
+        @Override
+        public void sendPrivateMsg(PrivateMessageText request, StreamObserver<Empty> responseObserver) {
+            try {
+                User sender = userManager.findUserByName(request.getMessageText().getSender());
+                userManager.addToMessages(new Message(sender, MessageType.PRIVATE, request.getMessageText().getText(), request.getReceiver()), mutex);
+                info(request.getMessageText().getSender() + " is broadcasting:" + request.getMessageText().getText());
                 responseObserver.onNext(Empty.newBuilder().build());
                 responseObserver.onCompleted();
             } catch (UserNotFoundException e) {
@@ -113,7 +125,7 @@ public class ChatServer {
         // synchronize message list of all users, so that they receive the latest message
         // mutex will wait until a message is added to the list
         @Override
-        public void syncMessages(Empty request, StreamObserver<MessageText> responseObserver) {
+        public void syncMessages(UserInfo request, StreamObserver<MessageText> responseObserver) {
             while (isRunning) {
                 synchronized (mutex) {
                     try {
@@ -123,9 +135,25 @@ public class ChatServer {
                         responseObserver.onCompleted();
                     }
                 }
-                Message msg = serverController.getLastMessage();
-                info("Synchronize... : " + msg.getTextFormat());
-                responseObserver.onNext(MessageText.newBuilder().setSender(msg.getSender().getName()).setText(msg.getTextFormat()).build());
+                // check if their is a message that belongs to the user
+                Message msg = userManager.getLastMessage(request.getName());
+                info("Synchronize... : " + msg);
+                responseObserver.onNext(MessageText.newBuilder().setSender(msg.getSender().getName()).setText(msg.getContent()).build());
+            }
+        }
+
+        @Override
+        public void disconnectUser(UserInfo request, StreamObserver<DisconnectMessage> responseObserver) {
+            try {
+                info(request.getName() + " is disconnecting from server.");
+                userManager.disconnectUser(request.getName());
+                responseObserver.onNext(DisconnectMessage.newBuilder().setUsername(request.getName()).setIsDisconnected(true).build());
+                info(request.getName() + " is disconnected from server.");
+                responseObserver.onCompleted();
+            } catch (UserNotFoundException e) {
+                responseObserver.onNext(DisconnectMessage.newBuilder().setIsDisconnected(false).build());
+                info(request.getName() + " not found.");
+                responseObserver.onCompleted();
             }
         }
     }

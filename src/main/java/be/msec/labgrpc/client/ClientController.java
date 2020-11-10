@@ -1,5 +1,6 @@
 package be.msec.labgrpc.client;
 
+import be.msec.labgrpc.UserNotFoundException;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.ListView;
@@ -67,17 +68,17 @@ public class ClientController {
         }
     }
 
-    private void connectToServer(String userName, String serverName, int portNumber) throws IOException {
+    private void connectToServer(String userName, String serverName, int portNumber) {
         client = new ChatClient(serverName, portNumber);
         chatPane.setItems(client.getMessages());
         client.connectUser(userName);
         client.sync();
     }
 
-    public void sendButtonAction() throws IOException {
+    public void sendButtonAction() throws UserNotFoundException {
         String text = msgField.getText();
         if (!text.isEmpty()) {
-            client.sendBroadcast(text);
+            client.sendBroadcastMsg(text);
             msgField.clear();
         } else {
             msgField.setText(ERROR_EMPTY_MESSAGE);
@@ -85,8 +86,10 @@ public class ClientController {
         }
     }
 
-    public void exit() throws  InterruptedException {
-        client.leave();
+    public void exit() throws InterruptedException {
+        if (client != null) {
+            client.leave();
+        }
         Platform.exit();
         System.exit(0);
     }
@@ -103,7 +106,7 @@ public class ClientController {
     }
 
     /* ----------------------------- KEY PRESSED ----------------------------- */
-    public void keyPressed(KeyEvent ke) throws IOException {
+    public void keyPressed(KeyEvent ke) throws UserNotFoundException {
         if (ke.getCode().equals(KeyCode.ENTER)) sendButtonAction();
     }
 
