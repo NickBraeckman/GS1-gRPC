@@ -1,6 +1,6 @@
 package be.msec.labgrpc.client;
 
-import be.msec.labgrpc.UserNotFoundException;
+import be.msec.labgrpc.exceptions.UserNotFoundException;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.ListView;

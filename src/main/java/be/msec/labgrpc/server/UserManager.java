@@ -1,7 +1,8 @@
 package be.msec.labgrpc.server;
 
 import be.msec.labgrpc.User;
-import be.msec.labgrpc.UserNotFoundException;
+import be.msec.labgrpc.exceptions.DuplicateUsernameException;
+import be.msec.labgrpc.exceptions.UserNotFoundException;
 
 import java.util.ArrayList;
 import java.util.HashMap;

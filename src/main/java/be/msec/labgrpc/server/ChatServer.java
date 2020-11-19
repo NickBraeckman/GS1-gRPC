@@ -2,6 +2,8 @@ package be.msec.labgrpc.server;
 
 
 import be.msec.labgrpc.*;
+import be.msec.labgrpc.exceptions.DuplicateUsernameException;
+import be.msec.labgrpc.exceptions.UserNotFoundException;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.grpc.stub.StreamObserver;

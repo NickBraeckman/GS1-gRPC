@@ -1,7 +1,7 @@
 package be.msec.labgrpc.client;
 
 import be.msec.labgrpc.*;
-import be.msec.labgrpc.UserNotFoundException;
+import be.msec.labgrpc.exceptions.UserNotFoundException;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.StatusRuntimeException;
