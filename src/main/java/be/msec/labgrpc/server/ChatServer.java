@@ -160,7 +160,7 @@ public class ChatServer {
 
         /*  -------------------------------- GETTING MESSAGES -------------------------------- */
         // synchronize message list of all users, so that they receive the latest message
-        // mutex will wait until a message is added to the list
+        // mutex will wait until a message is added to the list -- consume
         @Override
         public void syncMessages(UserInfo userInfo, StreamObserver<MessageText> responseObserver) {
             while (isRunning) {

@@ -78,21 +78,22 @@ public class ChatClient {
         return false;
     }
 
+    // check if their are new message's in the server's message list
+    public void sync() {
+        StreamObserver<MessageText> observer = new StreamObserver<MessageText>() {
+            @Override
+            public void onNext(MessageText value) {
+                info("Message received from " + value.getSender() + ".");
+                Platform.runLater(() -> messages.add(value.getText()));
+            }
+
     public void disconnectUser() throws InterruptedException {
         UserInfo userInfo = UserInfo.newBuilder().setName(user.getName()).build();
         DisconnectMessage response;
         try {
-            response = blockingStub.disconnectUser(userInfo);
-            if (response.getIsDisconnected()) {
-                logger.log(Level.INFO, "Successfully disconnected from server.");
-                sendBroadcastMsg(user.getName() + " has left the chat");
-                channel.shutdown().awaitTermination(5, TimeUnit.SECONDS);
-            } else {
-                logger.log(Level.WARNING, "Failed to disconnect from server");
-                Platform.runLater(() -> messagesPublic.add("Failed to disconnect from server, try again."));
-            }
-        } catch (StatusRuntimeException | UserNotFoundException e) {
-            logger.log(Level.SEVERE, "Exception" + e.getMessage());
+            asyncStub.syncMessages(UserInfo.newBuilder().setName(user.getName()).build(), observer);
+        } catch (Exception e) {
+            error(e.getMessage());
         }
     }
 
