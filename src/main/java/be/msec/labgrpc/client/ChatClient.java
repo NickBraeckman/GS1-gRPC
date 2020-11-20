@@ -61,7 +61,7 @@ public class ChatClient {
 
     // check if their are new message's in the server's message list
     public void sync() {
-        StreamObserver<MessageText> observer = new StreamObserver<MessageText>() {
+        StreamObserver<MessageText> requestObserver = new StreamObserver<MessageText>() {
             @Override
             public void onNext(MessageText value) {
                 info("Message received from " + value.getSender() + ".");
@@ -79,7 +79,7 @@ public class ChatClient {
             }
         };
         try {
-            asyncStub.syncMessages(UserInfo.newBuilder().setName(user.getName()).build(), observer);
+            asyncStub.syncMessages(UserInfo.newBuilder().setName(user.getName()).build(), requestObserver);
         } catch (Exception e) {
             error(e.getMessage());
         }
