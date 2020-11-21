@@ -1,7 +1,6 @@
 package be.msec.labgrpc.client;
 
-import be.msec.labgrpc.gui.PrivatChatController;
-import be.msec.labgrpc.gui.PublicChatController;
+import be.msec.labgrpc.gui.*;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -11,6 +10,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -19,7 +19,7 @@ import java.util.Arrays;
 import java.util.logging.Logger;
 
 public class ChatApplication extends Application {
-    private final Logger logger = Logger.getLogger(ChatApplication.class.getName());
+    private static final Logger logger = Logger.getLogger(ChatApplication.class.getName());
 
     private static Stage publicStage, privateStage;
     private static Scene publicScene;
@@ -28,7 +28,7 @@ public class ChatApplication extends Application {
     public static ChatClient chatClient = null;
     private static PublicChatController publicChatController;
     private static URL loginFXML, publicFXML, privateFXML;
-    public static final String title = "Socket-based Chat service";
+    public static final String title = "gRPC-based Chat";
     public static FXMLLoader fxmlLoader;
     public static String correspondent = null;
 
@@ -40,19 +40,23 @@ public class ChatApplication extends Application {
     public ChatApplication() throws MalformedURLException {
         publicChatController = new PublicChatController();
         if (chatApplication == null) chatApplication = this;
-        ClassLoader classLoader = getClass().getClassLoader();
-        loginFXML = classLoader.getResource("gui/LoginForm.fxml");
-        publicFXML = classLoader.getResource("gui/PublicChat.fxml");
-        privateFXML = classLoader.getResource("gui/PrivateChat.fxml");
+        ClassLoader classLoader = this.getClass().getClassLoader();
+
+
+        loginFXML = classLoader.getResource("/gui/LoginForm.fxml");
+        publicFXML = classLoader.getResource("be/msec/labgrpc/gui/PublicChat.fxml");
+        privateFXML = classLoader.getResource("be/msec/labgrpc/gui/PrivateChat.fxml");
+
+
     }
 
     /*  -------------------------------- START -------------------------------- */
     @Override
     public void start(Stage primaryStage) {
         publicStage = primaryStage;
-        publicStage.setTitle(title);
+        publicStage.setTitle("Welcome to "+title);
         try {
-            showLogin("Welcome to RMI chat");
+            showLogin(title);
         } catch (Exception e) {
             System.out.println(Arrays.toString(e.getStackTrace()));
         }
@@ -189,7 +193,7 @@ public class ChatApplication extends Application {
     @Override
     public void start(Stage primaryStage) throws IOException {
         primaryStageObj = primaryStage;
-        Parent root = FXMLLoader.load(new URL("file:src/main/java/be/msec/labgrpc/gui/ChatView_v2.fxml"));
+        Parent root = FXMLLoader.load(new URL("file:src/main/java/be/msec/labgrpc/be.msec.labgrpc.gui/ChatView_v2.fxml"));
 
         Scene scene = new Scene(root, 300, 275);
 

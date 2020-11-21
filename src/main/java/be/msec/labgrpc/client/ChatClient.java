@@ -178,6 +178,7 @@ public class ChatClient {
             error(e.getMessage());
         }
     }
+/*
     public void syncUserList() {
         StreamObserver<MessageText> observer = new StreamObserver<MessageText>() {
             @Override
@@ -202,6 +203,7 @@ public class ChatClient {
             error(e.getMessage());
         }
     }
+*/
 
 
 

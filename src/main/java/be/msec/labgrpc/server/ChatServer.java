@@ -165,9 +165,9 @@ public class ChatServer {
         public void syncPrivateMessages(UserInfo request, StreamObserver<PrivateMessageText> responseObserver) {
         }
 
-        @Override
+      /*  @Override
         public void syncUserList(UserInfo request, StreamObserver<MessageText> responseObserver) {
 
-        }
+        }*/
     }
 }
