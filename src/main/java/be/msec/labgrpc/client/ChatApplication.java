@@ -3,6 +3,7 @@ package be.msec.labgrpc.client;
 import be.msec.labgrpc.gui.*;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
@@ -43,10 +44,13 @@ public class ChatApplication extends Application {
         ClassLoader classLoader = this.getClass().getClassLoader();
 
 
-        loginFXML = classLoader.getResource("/gui/LoginForm.fxml");
-        publicFXML = classLoader.getResource("be/msec/labgrpc/gui/PublicChat.fxml");
-        privateFXML = classLoader.getResource("be/msec/labgrpc/gui/PrivateChat.fxml");
+/*        loginFXML = classLoader.getResource("file:/gui/PublicChat.fxml");
+        publicFXML = classLoader.getResource("file:gui/PublicChat.fxml");
+        privateFXML = classLoader.getResource("be/msec/labgrpc/gui/PrivateChat.fxml");*/
 
+        loginFXML =new URL("file:src/main/java/be/msec/labgrpc/gui/LoginForm.fxml");
+        publicFXML=new URL("file:src/main/java/be/msec/labgrpc/gui/PublicChat.fxml");
+        privateFXML=new URL("file:src/main/java/be/msec/labgrpc/gui/PrivateChat.fxml");
 
     }
 
