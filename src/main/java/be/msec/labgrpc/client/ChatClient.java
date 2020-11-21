@@ -16,14 +16,22 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class ChatClient {
+    /*  -------------------------------- LOGGER -------------------------------- */
     private static final Logger logger = Logger.getLogger(ChatClient.class.getName());
 
-    private User user;
-    private String text;
-    private final ObservableList<String> messages;
+    /*  -------------------------------- CONNECTION STUFF -------------------------------- */
     private final ManagedChannel channel;
     private final ChatServiceGrpc.ChatServiceStub asyncStub;
     private final ChatServiceGrpc.ChatServiceBlockingStub blockingStub;
+
+    /*  -------------------------------- LISTS -------------------------------- */
+    private final ObservableList<String> messagesPublic;
+    private final ObservableList<String> messagesPrivate;
+    private final ObservableList<String> users;
+
+    /*  -------------------------------- USER INFO -------------------------------- */
+    private User user;
+
 
     public ChatClient(String hostname, int portNumber) {
         this(ManagedChannelBuilder.forAddress(hostname, portNumber).usePlaintext(true));
@@ -33,60 +41,56 @@ public class ChatClient {
         channel = channelBuilder.build();
         asyncStub = ChatServiceGrpc.newStub(channel);
         blockingStub = ChatServiceGrpc.newBlockingStub(channel);
-        messages = FXCollections.observableArrayList();
-        info("Client started");
+        messagesPublic = FXCollections.observableArrayList();
+        messagesPrivate = FXCollections.observableArrayList();
+        users = FXCollections.observableArrayList();
+        logger.log(Level.INFO, "Client started");
     }
 
-    public void connectUser(String username) {
+    /*  -------------------------------- CONNECT/DISCONNECT -------------------------------- */
+    public boolean connectUser(String username) {
         UserInfo userInfo = UserInfo.newBuilder().setName(username).build();
         ConnectMessage response;
         try {
             response = blockingStub.connectUser(userInfo);
             if (response.getIsConnected()) {
                 user = new User(username);
-                info("Successfully connected to server.");
+                logger.log(Level.INFO, "Successfully connected to server.");
 
-                Platform.runLater(() -> messages.add("Welcome to the chat " + username + " !"));
+                Platform.runLater(() -> messagesPublic.add("Welcome to the chat " + username + " !"));
 
                 sendBroadcastMsg(username + " has entered the chat");
-
+                return true;
             } else {
-                info("Username already taken, choose another one.");
-                Platform.runLater(() -> messages.add("Username already taken, choose another one."));
+                logger.log(Level.WARNING, "Duplicate username (" + username + ") entered");
+                Platform.runLater(() -> messagesPublic.add("Username already taken, choose another one."));
             }
         } catch (StatusRuntimeException | UserNotFoundException e) {
-            error(e.getMessage());
+            logger.log(Level.SEVERE, "Exception" + e.getMessage());
         }
+        return false;
     }
 
-    // check if their are new message's in the server's message list
-    public void sync() {
-        StreamObserver<MessageText> observer = new StreamObserver<MessageText>() {
-            @Override
-            public void onNext(MessageText value) {
-                info("Message received from " + value.getSender() + ".");
-                Platform.runLater(() -> messages.add(value.getText()));
-            }
-
-            @Override
-            public void onError(Throwable t) {
-                error("Server error.");
-                Platform.runLater(() -> messages.add("Server error."));
-            }
-
-            @Override
-            public void onCompleted() {
-            }
-        };
+    public void disconnectUser() throws InterruptedException {
+        UserInfo userInfo = UserInfo.newBuilder().setName(user.getName()).build();
+        DisconnectMessage response;
         try {
-            asyncStub.syncMessages(UserInfo.newBuilder().setName(user.getName()).build(), observer);
-        } catch (Exception e) {
-            error(e.getMessage());
+            response = blockingStub.disconnectUser(userInfo);
+            if (response.getIsDisconnected()) {
+                logger.log(Level.INFO, "Successfully disconnected from server.");
+                sendBroadcastMsg(user.getName() + " has left the chat");
+                channel.shutdown().awaitTermination(5, TimeUnit.SECONDS);
+            } else {
+                logger.log(Level.WARNING, "Failed to disconnect from server");
+                Platform.runLater(() -> messagesPublic.add("Failed to disconnect from server, try again."));
+            }
+        } catch (StatusRuntimeException | UserNotFoundException e) {
+            logger.log(Level.SEVERE, "Exception" + e.getMessage());
         }
     }
 
-    // send a message
-    // add the message to the shared message's list at the serverside
+    /*  -------------------------------- SENDING MESSAGES -------------------------------- */
+    // (send) add the message to the shared message's list at the serverside
     public void sendBroadcastMsg(String text) throws UserNotFoundException {
 
         if (user != null) {
@@ -96,7 +100,7 @@ public class ChatClient {
                 blockingStub.sendBroadcastMsg(messageText);
             } catch (StatusRuntimeException e) {
                 error(e.getMessage());
-                Platform.runLater(() -> messages.add("Could not connect with server. Try again."));
+                Platform.runLater(() -> messagesPublic.add("Could not connect with server. Try again."));
             }
         } else {
             throw new UserNotFoundException("Could not find user");
@@ -115,33 +119,49 @@ public class ChatClient {
                 blockingStub.sendPrivateMsg(privateMessageText);
             } catch (StatusRuntimeException e) {
                 error(e.getMessage());
-                Platform.runLater(() -> messages.add("Could not connect with server. Try again."));
+                Platform.runLater(() -> messagesPublic.add("Could not connect with server. Try again."));
             }
         } else {
             throw new UserNotFoundException("Could not find user");
         }
     }
 
-    public void leave() throws InterruptedException {
-        UserInfo userInfo = UserInfo.newBuilder().setName(user.getName()).build();
-        DisconnectMessage response;
-        try {
-            response = blockingStub.disconnectUser(userInfo);
-            if (response.getIsDisconnected()) {
-                info("Successfully disconnected from server.");
-                sendBroadcastMsg(user.getName() + " has left the chat");
-                channel.shutdown().awaitTermination(5, TimeUnit.SECONDS);
-            } else {
-                info("Failed to disconnect from server");
-                Platform.runLater(() -> messages.add("Failed to disconnect from server, try again."));
+    /*  -------------------------------- GETTING MESSAGES -------------------------------- */
+    // check if their are new message's in the server's message list
+    public void sync() {
+        StreamObserver<MessageText> observer = new StreamObserver<MessageText>() {
+            @Override
+            public void onNext(MessageText value) {
+                info("Public message received from " + value.getSender() + ".");
+                Platform.runLater(() -> messagesPublic.add(value.getText()));
             }
-        } catch (StatusRuntimeException | UserNotFoundException e) {
+
+            @Override
+            public void onNext(PrivateMessageText value) {
+                info("Private message received from " + value.getSender() + ".");
+                Platform.runLater(() -> messagesPublic.add(value.getText()));
+            }
+
+            @Override
+            public void onError(Throwable t) {
+                error("Server error.");
+                Platform.runLater(() -> messagesPublic.add("Server error."));
+            }
+
+            @Override
+            public void onCompleted() {
+            }
+        };
+        try {
+            asyncStub.syncMessages(UserInfo.newBuilder().setName(user.getName()).build(), observer);
+        } catch (Exception e) {
             error(e.getMessage());
         }
     }
 
-    public ObservableList<String> getMessages() {
-        return messages;
+
+    public ObservableList<String> getMessagesPublic() {
+        return messagesPublic;
     }
 
     private static void info(String msg, @Nullable Object... params) {
