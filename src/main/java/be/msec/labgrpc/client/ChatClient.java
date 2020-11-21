@@ -121,7 +121,7 @@ public class ChatClient {
                 blockingStub.sendPrivateMsg(privateMessageText);
             } catch (StatusRuntimeException e) {
                 error(e.getMessage());
-                Platform.runLater(() -> messagesPublic.add("Could not connect with server. Try again."));
+                Platform.runLater(() -> messagesPrivate.add("Could not connect with server. Try again."));
             }
         } else {
             throw new UserNotFoundException("Could not find user");
@@ -130,7 +130,7 @@ public class ChatClient {
 
     /*  -------------------------------- GETTING MESSAGES -------------------------------- */
     // check if their are new message's in the server's message list
-    public void sync() {
+    public void syncPublicMessages() {
         StreamObserver<MessageText> observer = new StreamObserver<MessageText>() {
             @Override
             public void onNext(MessageText value) {
@@ -154,6 +154,55 @@ public class ChatClient {
             error(e.getMessage());
         }
     }
+    public void syncPrivateMessages() {
+        StreamObserver<PrivateMessageText> observer = new StreamObserver<PrivateMessageText>() {
+            @Override
+            public void onNext(PrivateMessageText value) {
+                info("Private message received from " + value.getMessageText().getSender() + ".");
+                Platform.runLater(() -> messagesPrivate.add(value.getMessageText().getText()));
+            }
+
+            @Override
+            public void onError(Throwable t) {
+                error("Server error.");
+                Platform.runLater(() -> messagesPrivate.add("Server error."));
+            }
+
+            @Override
+            public void onCompleted() {
+            }
+        };
+        try {
+            asyncStub.syncPrivateMessages(UserInfo.newBuilder().setName(user.getName()).build(), observer);
+        } catch (Exception e) {
+            error(e.getMessage());
+        }
+    }
+    public void syncUserList() {
+        StreamObserver<MessageText> observer = new StreamObserver<MessageText>() {
+            @Override
+            public void onNext(MessageText value) {
+                info("Public message received from " + value.getSender() + ".");
+                Platform.runLater(() -> messagesPublic.add(value.getText()));
+            }
+
+            @Override
+            public void onError(Throwable t) {
+                error("Server error.");
+                Platform.runLater(() -> messagesPublic.add("Server error."));
+            }
+
+            @Override
+            public void onCompleted() {
+            }
+        };
+        try {
+            asyncStub.syncPublicMessages(UserInfo.newBuilder().setName(user.getName()).build(), observer);
+        } catch (Exception e) {
+            error(e.getMessage());
+        }
+    }
+
 
 
     public ObservableList<String> getPublicMessages() {

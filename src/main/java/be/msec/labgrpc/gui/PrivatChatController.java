@@ -2,7 +2,7 @@ package be.msec.labgrpc.gui;
 
 import be.msec.labgrpc.client.ChatApplication;
 import be.msec.labgrpc.exceptions.UserNotFoundException;
-import com.sun.istack.internal.Nullable;
+import javax.annotation.Nullable;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
