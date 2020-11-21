@@ -2,17 +2,17 @@ package be.msec.labgrpc.client;
 
 import be.msec.labgrpc.*;
 import be.msec.labgrpc.exceptions.UserNotFoundException;
-import io.grpc.ManagedChannel;
+import io.grpc.*;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
-import javafx.application.Platform;
-import javafx.collections.FXCollections;
+import javafx.application.*;
+import javafx.collections.*;
 import javafx.collections.ObservableList;
 
-import javax.annotation.Nullable;
-import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
+import javax.annotation.*;
+import java.util.concurrent.*;
+import java.util.logging.*;
 import java.util.logging.Logger;
 
 public class ChatClient {
@@ -154,6 +154,7 @@ public class ChatClient {
             error(e.getMessage());
         }
     }
+
     public void syncPrivateMessages() {
         StreamObserver<PrivateMessageText> observer = new StreamObserver<PrivateMessageText>() {
             @Override
@@ -178,7 +179,7 @@ public class ChatClient {
             error(e.getMessage());
         }
     }
-/*
+
     public void syncUserList() {
         StreamObserver<MessageText> observer = new StreamObserver<MessageText>() {
             @Override
@@ -203,8 +204,6 @@ public class ChatClient {
             error(e.getMessage());
         }
     }
-*/
-
 
 
     public ObservableList<String> getPublicMessages() {
