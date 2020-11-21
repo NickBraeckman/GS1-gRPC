@@ -32,18 +32,20 @@ public class ChatClient {
     /*  -------------------------------- USER INFO -------------------------------- */
     private User user;
 
-
+    /*  -------------------------------- CONSTRUCTORS -------------------------------- */
     public ChatClient(String hostname, int portNumber) {
         this(ManagedChannelBuilder.forAddress(hostname, portNumber).usePlaintext(true));
     }
 
     public ChatClient(ManagedChannelBuilder<?> channelBuilder) {
-        channel = channelBuilder.build();
-        asyncStub = ChatServiceGrpc.newStub(channel);
-        blockingStub = ChatServiceGrpc.newBlockingStub(channel);
         messagesPublic = FXCollections.observableArrayList();
         messagesPrivate = FXCollections.observableArrayList();
         users = FXCollections.observableArrayList();
+
+        /*  -------------------------------- START -------------------------------- */
+        channel = channelBuilder.build();
+        asyncStub = ChatServiceGrpc.newStub(channel);
+        blockingStub = ChatServiceGrpc.newBlockingStub(channel);
         logger.log(Level.INFO, "Client started");
     }
 
@@ -137,12 +139,6 @@ public class ChatClient {
             }
 
             @Override
-            public void onNext(PrivateMessageText value) {
-                info("Private message received from " + value.getSender() + ".");
-                Platform.runLater(() -> messagesPublic.add(value.getText()));
-            }
-
-            @Override
             public void onError(Throwable t) {
                 error("Server error.");
                 Platform.runLater(() -> messagesPublic.add("Server error."));
@@ -153,15 +149,27 @@ public class ChatClient {
             }
         };
         try {
-            asyncStub.syncMessages(UserInfo.newBuilder().setName(user.getName()).build(), observer);
+            asyncStub.syncPublicMessages(UserInfo.newBuilder().setName(user.getName()).build(), observer);
         } catch (Exception e) {
             error(e.getMessage());
         }
     }
 
 
-    public ObservableList<String> getMessagesPublic() {
+    public ObservableList<String> getPublicMessages() {
         return messagesPublic;
+    }
+
+    public ObservableList<String> getPrivateMessages() {
+        return messagesPrivate;
+    }
+
+    public ObservableList<String> getUsers() {
+        return users;
+    }
+
+    public User getUser() {
+        return user;
     }
 
     private static void info(String msg, @Nullable Object... params) {

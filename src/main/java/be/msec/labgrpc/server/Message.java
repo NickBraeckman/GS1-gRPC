@@ -4,7 +4,6 @@ import be.msec.labgrpc.User;
 
 import java.sql.Timestamp;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 

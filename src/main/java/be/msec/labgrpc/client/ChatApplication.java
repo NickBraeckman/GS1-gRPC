@@ -1,13 +1,15 @@
 package be.msec.labgrpc.client;
 
+import be.msec.labgrpc.gui.PrivatChatController;
+import be.msec.labgrpc.gui.PublicChatController;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
+import javafx.stage.WindowEvent;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -15,9 +17,6 @@ import java.net.URL;
 import java.rmi.NotBoundException;
 import java.util.Arrays;
 import java.util.logging.Logger;
-
-import be.msec.labgrpc.gui.*;
-import javafx.stage.WindowEvent;
 
 public class ChatApplication extends Application {
     private final Logger logger = Logger.getLogger(ChatApplication.class.getName());
@@ -62,7 +61,7 @@ public class ChatApplication extends Application {
     /*  -------------------------------- CONNECTING -------------------------------- */
     public static void connectToServer(String userName, String serverName, int portNumber) throws IOException, NotBoundException {
         chatClient = new ChatClient(serverName, portNumber);
-        chatClient.start();
+//        chatClient.start();
 
         if (chatClient.connectUser(userName)) {
             launchPublicChat();
@@ -106,7 +105,7 @@ public class ChatApplication extends Application {
         publicStage.setOnCloseRequest(event -> {
             try {
                 publicChatController.closePublicChat(event);
-            } catch (IOException e) {
+            } catch (IOException | InterruptedException e) {
                 e.printStackTrace();
             }
         });
@@ -149,7 +148,7 @@ public class ChatApplication extends Application {
             privateStage.close();
         }
         correspondent = null;
-        chatClient.resetPrivateChat();
+//        chatClient.resetPrivateChat();
 
     }
 
@@ -178,6 +177,7 @@ public class ChatApplication extends Application {
     public static ChatClient getChatClient() {
         return chatClient;
     }
+}
 
 
 

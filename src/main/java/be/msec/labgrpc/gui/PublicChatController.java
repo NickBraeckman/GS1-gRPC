@@ -2,7 +2,7 @@ package be.msec.labgrpc.gui;
 
 import be.msec.labgrpc.client.ChatApplication;
 import be.msec.labgrpc.client.ChatClient;
-import com.sun.istack.internal.Nullable;
+import be.msec.labgrpc.exceptions.UserNotFoundException;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
@@ -13,6 +13,7 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.stage.WindowEvent;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.logging.Level;
@@ -44,7 +45,7 @@ public class PublicChatController {
 
 
     /* ----------------------------- SEND BROADCAST ----------------------------- */
-    public void sendBroadcastAction() throws IOException {
+    public void sendBroadcastAction() throws IOException, UserNotFoundException {
         String text = msgField.getText();
         if (!text.isEmpty()) {
             ChatApplication.chatClient.sendBroadcastMsg(text);
@@ -55,7 +56,7 @@ public class PublicChatController {
     }
 
     /* ----------------------------- KEY PRESSED ----------------------------- */
-    public void keyPressed(KeyEvent ke) throws IOException {
+    public void keyPressed(KeyEvent ke) throws IOException, UserNotFoundException {
         if (ke.getCode().equals(KeyCode.ENTER)) sendBroadcastAction();
     }
 
@@ -67,10 +68,10 @@ public class PublicChatController {
 
         boolean self = selectedUser.equals(currentUser);
 
-        if (!self) {
+      /*  if (!self) {
             ChatApplication.chatClient.sendRequestPrivateMSG("I want to send a message", selectedUser);
             ChatApplication.launchPrivateChat(selectedUser);
-        }
+        }*/
     }
 
     /* ----------------------------- FIELD PRESSED ----------------------------- */
@@ -87,7 +88,7 @@ public class PublicChatController {
 
 
     /* ----------------------------- EXIT ----------------------------- */
-    public void closePublicChat(WindowEvent event) throws IOException {
+    public void closePublicChat(WindowEvent event) throws IOException, InterruptedException {
         //Only  perform leave is chatclient is started
         if (chatClient != null) {
             chatClient.disconnectUser();

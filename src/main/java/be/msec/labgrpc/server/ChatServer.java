@@ -42,10 +42,10 @@ public class ChatServer {
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
             public void run() {
-                error("*** shutting down gRPC server since JVM is shutting down");
+                logger.log(Level.SEVERE, "gRPC server shutting down (JVM is shutting down)");
                 isRunning = false;
                 ChatServer.this.stop();
-                error("*** server shut down");
+                logger.log(Level.SEVERE, "gRPC server is shutdown");
             }
         });
     }
@@ -78,7 +78,7 @@ public class ChatServer {
 
     private static class ChatService extends ChatServiceGrpc.ChatServiceImplBase {
 
-        // user tries to connect
+        /*  -------------------------------- CONNECT/DISCONNECT -------------------------------- */
         @Override
         public void connectUser(UserInfo request, StreamObserver<ConnectMessage> responseObserver) {
             try {
@@ -94,6 +94,22 @@ public class ChatServer {
             }
         }
 
+        @Override
+        public void disconnectUser(UserInfo request, StreamObserver<DisconnectMessage> responseObserver) {
+            try {
+                info(request.getName() + " is disconnecting from server.");
+                userManager.disconnectUser(request.getName());
+                responseObserver.onNext(DisconnectMessage.newBuilder().setUsername(request.getName()).setIsDisconnected(true).build());
+                info(request.getName() + " is disconnected from server.");
+                responseObserver.onCompleted();
+            } catch (UserNotFoundException e) {
+                responseObserver.onNext(DisconnectMessage.newBuilder().setIsDisconnected(false).build());
+                info(request.getName() + " not found.");
+                responseObserver.onCompleted();
+            }
+        }
+
+        /*  -------------------------------- SENDING MESSAGES -------------------------------- */
         // send a message to all users
         // put a message in the message list, that is accessible by all users, and notify the sync method
         @Override
@@ -101,7 +117,7 @@ public class ChatServer {
             try {
                 User sender = userManager.findUserByName(request.getSender());
                 userManager.addToMessages(new Message(sender, MessageType.BROADCAST, request.getText()), mutex);
-                info(request.getSender() + " is broadcasting:" + request.getText());
+                logger.log(Level.INFO, request.getSender() + " is broadcasting:" + request.getText());
                 responseObserver.onNext(Empty.newBuilder().build());
                 responseObserver.onCompleted();
             } catch (UserNotFoundException e) {
@@ -124,10 +140,11 @@ public class ChatServer {
             }
         }
 
+        /*  -------------------------------- GETTING MESSAGES -------------------------------- */
         // synchronize message list of all users, so that they receive the latest message
         // mutex will wait until a message is added to the list
         @Override
-        public void syncMessages(UserInfo request, StreamObserver<MessageText> responseObserver) {
+        public void syncPublicMessages(UserInfo request, StreamObserver<MessageText> responseObserver) {
             while (isRunning) {
                 synchronized (mutex) {
                     try {
@@ -145,18 +162,12 @@ public class ChatServer {
         }
 
         @Override
-        public void disconnectUser(UserInfo request, StreamObserver<DisconnectMessage> responseObserver) {
-            try {
-                info(request.getName() + " is disconnecting from server.");
-                userManager.disconnectUser(request.getName());
-                responseObserver.onNext(DisconnectMessage.newBuilder().setUsername(request.getName()).setIsDisconnected(true).build());
-                info(request.getName() + " is disconnected from server.");
-                responseObserver.onCompleted();
-            } catch (UserNotFoundException e) {
-                responseObserver.onNext(DisconnectMessage.newBuilder().setIsDisconnected(false).build());
-                info(request.getName() + " not found.");
-                responseObserver.onCompleted();
-            }
+        public void syncPrivateMessages(UserInfo request, StreamObserver<PrivateMessageText> responseObserver) {
+        }
+
+        @Override
+        public void syncUserList(UserInfo request, StreamObserver<MessageText> responseObserver) {
+
         }
     }
 }

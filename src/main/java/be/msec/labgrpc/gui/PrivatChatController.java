@@ -1,5 +1,7 @@
 package be.msec.labgrpc.gui;
 
+import be.msec.labgrpc.client.ChatApplication;
+import be.msec.labgrpc.exceptions.UserNotFoundException;
 import com.sun.istack.internal.Nullable;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -9,7 +11,6 @@ import javafx.scene.control.TextField;
 import javafx.scene.effect.Lighting;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
-import main.*;
 
 import java.io.IOException;
 import java.util.logging.Level;
@@ -52,20 +53,20 @@ public class PrivatChatController {
     }
 
     /* ----------------------------- SEND PRIVATE ----------------------------- */
-    public void sendPrivateAction() throws IOException {
+    public void sendPrivateAction() throws IOException, UserNotFoundException {
         String text = msgField.getText();
         String currentUser = ChatApplication.chatClient.getUser().toString();
         if (!text.isEmpty()) {
             ChatApplication.chatClient.sendPrivateMsg(text, correspondent);
             msgField.clear();
-            ChatApplication.chatClient.addPrivateMessage("[" + currentUser + "]: " + text);
+//            ChatApplication.chatClient.addPrivateMessage("[" + currentUser + "]: " + text);
         } else {
             flashTextField(this.msgField);
         }
     }
 
     /* ----------------------------- KEY PRESSED ----------------------------- */
-    public void keyPressed(KeyEvent ke) throws IOException {
+    public void keyPressed(KeyEvent ke) throws IOException, UserNotFoundException {
         if (ke.getCode().equals(KeyCode.ENTER)) sendPrivateAction();
     }
 
