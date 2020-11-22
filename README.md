@@ -28,7 +28,7 @@ Implement a simple chat-system with following features:
 
 ## Clone the project
 
-1. Clone project from github
+1. Clone project from github (master branch)
 
 2. Import project 
    *  Project JDK: 1.8.0_241
