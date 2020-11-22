@@ -145,8 +145,8 @@ public class ChatClient {
 
             @Override
             public void onError(Throwable t) {
-                error("Server error.");
-                Platform.runLater(() -> messagesPublic.add("Server error."));
+                error("Server-side error.");
+                Platform.runLater(() -> messagesPublic.add("Server-side error."));
             }
 
             @Override
@@ -159,7 +159,6 @@ public class ChatClient {
             error(e.getMessage());
         }
     }
-
     public void placeInRightMessageList(String text, String sender) {
 
         String[] split = text.split(MESSAGE_TYPE_REGEX);
@@ -184,8 +183,6 @@ public class ChatClient {
             public void onNext(UserInfo value) {
                 info("Public message received from " + value.getName() + ".");
                 Platform.runLater(() -> {
-//                    users.clear();
-                    logger.fine(users.toString());//TODO
                     users.add(value.getName());
                     logger.log(Level.INFO, value.getName() + " added to list");
                 });
@@ -194,7 +191,7 @@ public class ChatClient {
             @Override
             public void onError(Throwable t) {
                 error("Server error.");
-                Platform.runLater(() -> messagesPublic.add("Server error."));
+                Platform.runLater(() -> messagesPublic.add("Server error  user list"));
             }
 
             @Override

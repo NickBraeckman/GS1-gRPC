@@ -15,20 +15,24 @@ public class UserManager {
         users = new HashMap<>();
     }
 
-    public void connectUser(String username) throws DuplicateUsernameException {
-        if (users.containsKey(username)) {
-            throw new DuplicateUsernameException(username);
-        } else {
-            User user = new User(username);
-            users.put(username, user);
+    public void connectUser(String username, Object mutex) throws DuplicateUsernameException {
+        synchronized (mutex) {
+            if (users.containsKey(username)) {
+                throw new DuplicateUsernameException(username);
+            } else {
+                User user = new User(username);
+                users.put(username, user);
+            }
         }
     }
 
-    public void disconnectUser(String username) throws UserNotFoundException {
-        if (users.containsKey(username)) {
-            users.remove(username);
-        } else {
-            throw new UserNotFoundException("Could not find user: " + username);
+    public void disconnectUser(String username, Object mutex) throws UserNotFoundException {
+        synchronized (mutex) {
+            if (users.containsKey(username)) {
+                users.remove(username);
+            } else {
+                throw new UserNotFoundException("Could not find user: " + username);
+            }
         }
     }
 

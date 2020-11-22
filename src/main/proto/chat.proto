@@ -18,6 +18,7 @@ service ChatService {
 
   /*  -------------------------------- GETTING MESSAGES -------------------------------- */
   rpc syncMessages(UserInfo) returns (stream MessageText){}
+
   rpc syncUserList(Empty) returns (stream UserInfo){}
 
 }

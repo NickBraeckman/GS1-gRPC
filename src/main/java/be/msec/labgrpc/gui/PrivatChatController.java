@@ -40,16 +40,13 @@ public class PrivatChatController {
 
         this.correspondent = ChatApplication.correspondent;
 
-/*
+        setChatTitle("your talking to (" + correspondent + ")");
 
-        if (correspondent == null) {
+
+        if (correspondent == "null") {
             send_button.setVisible(false);
             setChatTitle("READ ONLY");
-        } else {
-            setChatTitle("your talking to (" + correspondent + ")");
-
         }
-*/
 
     }
 
