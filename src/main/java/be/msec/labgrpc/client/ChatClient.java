@@ -15,6 +15,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static be.msec.labgrpc.server.ChatServer.*;
+
 public class ChatClient {
     /*  -------------------------------- LOGGER -------------------------------- */
     private static final Logger logger = Logger.getLogger(ChatClient.class.getName());
@@ -62,7 +64,7 @@ public class ChatClient {
 
                 Platform.runLater(() -> messagesPublic.add("Welcome to the chat " + username + " !"));
                 Platform.runLater(this::syncUserList);
-                Platform.runLater(this::syncPublicMessages);
+                Platform.runLater(this::syncMessages);
 
                 sendBroadcastMsg(username + " has entered the chat");
                 return true;
@@ -133,14 +135,12 @@ public class ChatClient {
 
     /*  -------------------------------- GETTING MESSAGES -------------------------------- */
     // check if their are new message's in the server's message list
-    public void syncPublicMessages() {
+    public void syncMessages() {
         StreamObserver<MessageText> observer = new StreamObserver<MessageText>() {
             @Override
             public void onNext(MessageText value) {
                 info("Public message received from " + value.getSender() + ".");
-                Platform.runLater(() -> messagesPublic.add(value.getText()));
-                Platform.runLater(() -> syncUserList());
-
+                placeInRightMessageList(value.getText(), value.getSender());
             }
 
             @Override
@@ -154,34 +154,25 @@ public class ChatClient {
             }
         };
         try {
-            asyncStub.syncPublicMessages(UserInfo.newBuilder().setName(user.getName()).build(), observer);
+            asyncStub.syncMessages(UserInfo.newBuilder().setName(user.getName()).build(), observer);
         } catch (Exception e) {
             error(e.getMessage());
         }
     }
 
-    public void syncPrivateMessages() {
-        StreamObserver<PrivateMessageText> observer = new StreamObserver<PrivateMessageText>() {
-            @Override
-            public void onNext(PrivateMessageText value) {
-                info("Private message received from " + value.getMessageText().getSender() + ".");
-                Platform.runLater(() -> messagesPrivate.add(value.getMessageText().getText()));
-            }
+    public void placeInRightMessageList(String text, String sender) {
 
-            @Override
-            public void onError(Throwable t) {
-                error("Server error.");
-                Platform.runLater(() -> messagesPrivate.add("Server error."));
-            }
+        String[] split = text.split(MESSAGE_TYPE_REGEX);
+        String MESSAGE_ID = split[0];
+        String content = split[1];
 
-            @Override
-            public void onCompleted() {
-            }
-        };
-        try {
-            asyncStub.syncPrivateMessages(UserInfo.newBuilder().setName(user.getName()).build(), observer);
-        } catch (Exception e) {
-            error(e.getMessage());
+        switch (MESSAGE_ID) {
+            case PRIVATE_MESSAGE_ID:
+                Platform.runLater(() -> messagesPrivate.add(content));
+                break;
+            case PUBLIC_MESSAGE_ID:
+                Platform.runLater(() -> messagesPublic.add(content));
+                break;
         }
     }
 
@@ -192,7 +183,7 @@ public class ChatClient {
             public void onNext(UserInfo value) {
                 info("Public message received from " + value.getName() + ".");
                 Platform.runLater(() -> {
-                    users.clear();
+//                    users.clear();
                     logger.fine(users.toString());//TODO
                     users.add(value.getName());
                     logger.log(Level.INFO, value.getName() + " added to list");

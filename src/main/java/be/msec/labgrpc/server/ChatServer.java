@@ -15,11 +15,14 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class ChatServer {
+    public static final String PRIVATE_MESSAGE_ID = "[PRIVATE";
+    public static final String PUBLIC_MESSAGE_ID = "[BROADCAST";
+    public static final String MESSAGE_TYPE_REGEX = ":";
 
     private static final Logger LOGGER = Logger.getLogger(ChatServer.class.getName());
-    private static final Object MSG_MUTEX = new Object();
+    private static final Object PUBLIC_MSG_MUTEX = new Object();
     private static final Object NEW_USER_MUTEX = new Object();
-    private static final Object LEAVE_USER_MUTEX = new Object();
+    private static final Object PRIVATE_MSG_MUTEX = new Object();
 
 
     private final int portNumber;
@@ -78,15 +81,15 @@ public class ChatServer {
         @Override
         public void connectUser(UserInfo userInfo, StreamObserver<ConnectMessage> responseObserver) {
             try {
-                LOGGER.log(Level.INFO,userInfo.getName() + " is connecting to server.");
-                userManager.connectUser(userInfo.getName());
+                LOGGER.log(Level.INFO, userInfo.getName() + " is connecting to server.");
+                userManager.connectUser(userInfo.getName()); //TODO user mutex
 
                 responseObserver.onNext(ConnectMessage.newBuilder().setUsername(userInfo.getName()).setIsConnected(true).build());
                 responseObserver.onCompleted();
-                LOGGER.log(Level.INFO,userInfo.getName() + " is connected to server.");
+                LOGGER.log(Level.INFO, userInfo.getName() + " is connected to server.");
             } catch (DuplicateUsernameException e) {
                 responseObserver.onNext(ConnectMessage.newBuilder().setIsConnected(false).build());
-                LOGGER.log(Level.WARNING,userInfo.getName() + " failed to connect to server.");
+                LOGGER.log(Level.WARNING, userInfo.getName() + " failed to connect to server.");
                 responseObserver.onCompleted();
             }
         }
@@ -94,15 +97,15 @@ public class ChatServer {
         @Override
         public void disconnectUser(UserInfo userInfo, StreamObserver<DisconnectMessage> responseObserver) {
             try {
-                LOGGER.log(Level.INFO,userInfo.getName() + " is disconnecting from server.");
+                LOGGER.log(Level.INFO, userInfo.getName() + " is disconnecting from server.");
                 userManager.disconnectUser(userInfo.getName());
 
                 responseObserver.onNext(DisconnectMessage.newBuilder().setUsername(userInfo.getName()).setIsDisconnected(true).build());
                 responseObserver.onCompleted();
-                LOGGER.log(Level.INFO,userInfo.getName() + " is disconnected from server.");
+                LOGGER.log(Level.INFO, userInfo.getName() + " is disconnected from server.");
             } catch (UserNotFoundException e) {
                 responseObserver.onNext(DisconnectMessage.newBuilder().setIsDisconnected(false).build());
-                LOGGER.log(Level.WARNING,userInfo.getName() + " not found.");
+                LOGGER.log(Level.WARNING, userInfo.getName() + " not found.");
                 responseObserver.onCompleted();
             }
         }
@@ -116,8 +119,8 @@ public class ChatServer {
                 //GATHERING INFO
                 User sender = userManager.findUserByName(messageText.getSender());
                 //MESSAGE
-                Message msg = new Message(sender, MessageType.BROADCAST, messageText.getText());
-                userManager.addToMessages(msg, MSG_MUTEX);
+                Message msg = new Message(sender, MessageType.BROADCAST, PUBLIC_MESSAGE_ID+MESSAGE_TYPE_REGEX+messageText.getText());
+                userManager.addToMessages(msg, PUBLIC_MSG_MUTEX);
                 LOGGER.log(Level.INFO, msg.toString());
                 //RESPONSE OBSERVER
                 responseObserver.onNext(Empty.newBuilder().build());
@@ -137,9 +140,9 @@ public class ChatServer {
                 User uReceiver = userManager.findUserByName(privateMessageText.getReceiver());
                 String sReceiver = uReceiver.toString();
                 //MESSAGE
-                Message msg = new Message(sender, MessageType.PRIVATE,mt.getText(), sReceiver);
-                userManager.addToMessages(msg, MSG_MUTEX);
-                LOGGER.log(Level.INFO,msg.toString());
+                Message msg = new Message(sender, MessageType.PRIVATE, PRIVATE_MESSAGE_ID+MESSAGE_TYPE_REGEX+mt.getText(), sReceiver);
+                userManager.addToMessages(msg, PUBLIC_MSG_MUTEX);
+                LOGGER.log(Level.INFO, msg.toString());
 
                 //RESPONSE OBSERVER
                 responseObserver.onNext(Empty.newBuilder().build());
@@ -154,38 +157,37 @@ public class ChatServer {
         // synchronize message list of all users, so that they receive the latest message
         // mutex will wait until a message is added to the list
         @Override
-        public void syncPublicMessages(UserInfo request, StreamObserver<MessageText> responseObserver) {
+        public void syncMessages(UserInfo userInfo, StreamObserver<MessageText> responseObserver) {
             while (isRunning) {
-                synchronized (MSG_MUTEX) {
+                synchronized (PUBLIC_MSG_MUTEX) {
                     try {
-                        MSG_MUTEX.wait();
+                        PUBLIC_MSG_MUTEX.wait();
                     } catch (Exception e) {
                         e.printStackTrace();
                         responseObserver.onCompleted();
                     }
                 }
                 // check if their is a message that belongs to the user
-                Message msg = userManager.getLastMessage(request.getName());
+                Message msg = userManager.getLastMessage(userInfo.getName());
                 info("Synchronize... : " + msg);
-                responseObserver.onNext(MessageText.newBuilder()
-                        .setSender(msg.getSender().getName())
-                        .setText(msg.getContent()).build());
+                responseObserver.onNext(
+                        MessageText
+                                .newBuilder()
+                                .setSender(msg.getSender().getName())
+                                .setText(msg.getContent()).build());
             }
         }
 
-        @Override
-        public void syncPrivateMessages(UserInfo userInfo, StreamObserver<PrivateMessageText> responseObserver) {
-        }
 
         @Override
         public void syncUserList(Empty empty, StreamObserver<UserInfo> responseObserver) {
             List<String> onlineUsers = userManager.getOnlineUsers();
-            for (String s: onlineUsers) {
+            for (String s : onlineUsers) {
                 responseObserver.onNext(UserInfo.newBuilder().setName(s).build());
             }
 
             while (isRunning) {
-                synchronized(NEW_USER_MUTEX) {
+                synchronized (NEW_USER_MUTEX) {
                     try {
                         NEW_USER_MUTEX.wait();
                     } catch (Exception e) {
@@ -194,7 +196,7 @@ public class ChatServer {
                     }
 
                     onlineUsers = userManager.getOnlineUsers();
-                    for (String s: onlineUsers) {
+                    for (String s : onlineUsers) {
                         responseObserver.onNext(UserInfo.newBuilder().setName(s).build());
                     }
                 }

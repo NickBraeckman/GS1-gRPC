@@ -68,10 +68,10 @@ public class PublicChatController {
 
         boolean self = selectedUser.equals(currentUser);
 
-      /*  if (!self) {
-            ChatApplication.chatClient.sendRequestPrivateMSG("I want to send a message", selectedUser);
+        if (!self) {
+            //ChatApplication.chatClient.sendRequestPrivateMSG("I want to send a message", selectedUser);
             ChatApplication.launchPrivateChat(selectedUser);
-        }*/
+        }
     }
 
     /* ----------------------------- FIELD PRESSED ----------------------------- */
