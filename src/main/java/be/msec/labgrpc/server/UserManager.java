@@ -4,10 +4,7 @@ import be.msec.labgrpc.User;
 import be.msec.labgrpc.exceptions.DuplicateUsernameException;
 import be.msec.labgrpc.exceptions.UserNotFoundException;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class UserManager {
     private final List<Message> messages;
@@ -67,5 +64,10 @@ public class UserManager {
             return null;
         }
         return null;
+    }
+
+    public List<String> getOnlineUsers() {
+        Set<String> set = users.keySet();
+        return new ArrayList<>(set);
     }
 }

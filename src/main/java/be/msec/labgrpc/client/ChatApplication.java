@@ -1,9 +1,9 @@
 package be.msec.labgrpc.client;
 
-import be.msec.labgrpc.gui.*;
+import be.msec.labgrpc.gui.PrivatChatController;
+import be.msec.labgrpc.gui.PublicChatController;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
@@ -11,7 +11,6 @@ import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -20,7 +19,7 @@ import java.util.Arrays;
 import java.util.logging.Logger;
 
 public class ChatApplication extends Application {
-    private static final Logger logger = Logger.getLogger(ChatApplication.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(ChatApplication.class.getName());
 
     private static Stage publicStage, privateStage;
     private static Scene publicScene;
@@ -43,14 +42,14 @@ public class ChatApplication extends Application {
         if (chatApplication == null) chatApplication = this;
         ClassLoader classLoader = this.getClass().getClassLoader();
 
-
+//TODO
 /*        loginFXML = classLoader.getResource("file:/gui/PublicChat.fxml");
         publicFXML = classLoader.getResource("file:gui/PublicChat.fxml");
         privateFXML = classLoader.getResource("be/msec/labgrpc/gui/PrivateChat.fxml");*/
 
-        loginFXML =new URL("file:src/main/java/be/msec/labgrpc/gui/LoginForm.fxml");
-        publicFXML=new URL("file:src/main/java/be/msec/labgrpc/gui/PublicChat.fxml");
-        privateFXML=new URL("file:src/main/java/be/msec/labgrpc/gui/PrivateChat.fxml");
+        loginFXML = new URL("file:src/main/java/be/msec/labgrpc/gui/LoginForm.fxml");
+        publicFXML = new URL("file:src/main/java/be/msec/labgrpc/gui/PublicChat.fxml");
+        privateFXML = new URL("file:src/main/java/be/msec/labgrpc/gui/PrivateChat.fxml");
 
     }
 
@@ -58,7 +57,7 @@ public class ChatApplication extends Application {
     @Override
     public void start(Stage primaryStage) {
         publicStage = primaryStage;
-        publicStage.setTitle("Welcome to "+title);
+        publicStage.setTitle("Welcome to " + title);
         try {
             showLogin(title);
         } catch (Exception e) {

@@ -2,17 +2,17 @@ package be.msec.labgrpc.client;
 
 import be.msec.labgrpc.*;
 import be.msec.labgrpc.exceptions.UserNotFoundException;
-import io.grpc.*;
+import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
-import javafx.application.*;
-import javafx.collections.*;
+import javafx.application.Platform;
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
-import javax.annotation.*;
-import java.util.concurrent.*;
-import java.util.logging.*;
+import javax.annotation.Nullable;
+import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class ChatClient {
@@ -47,6 +47,7 @@ public class ChatClient {
         asyncStub = ChatServiceGrpc.newStub(channel);
         blockingStub = ChatServiceGrpc.newBlockingStub(channel);
         logger.log(Level.INFO, "Client started");
+        logger.setLevel(Level.FINE);
     }
 
     /*  -------------------------------- CONNECT/DISCONNECT -------------------------------- */
@@ -60,6 +61,8 @@ public class ChatClient {
                 logger.log(Level.INFO, "Successfully connected to server.");
 
                 Platform.runLater(() -> messagesPublic.add("Welcome to the chat " + username + " !"));
+                Platform.runLater(this::syncUserList);
+                Platform.runLater(this::syncPublicMessages);
 
                 sendBroadcastMsg(username + " has entered the chat");
                 return true;
@@ -136,6 +139,8 @@ public class ChatClient {
             public void onNext(MessageText value) {
                 info("Public message received from " + value.getSender() + ".");
                 Platform.runLater(() -> messagesPublic.add(value.getText()));
+                Platform.runLater(() -> syncUserList());
+
             }
 
             @Override
@@ -180,12 +185,18 @@ public class ChatClient {
         }
     }
 
+    /*  -------------------------------- GETTING USER INFO -------------------------------- */
     public void syncUserList() {
-        StreamObserver<MessageText> observer = new StreamObserver<MessageText>() {
+        StreamObserver<UserInfo> observer = new StreamObserver<UserInfo>() {
             @Override
-            public void onNext(MessageText value) {
-                info("Public message received from " + value.getSender() + ".");
-                Platform.runLater(() -> messagesPublic.add(value.getText()));
+            public void onNext(UserInfo value) {
+                info("Public message received from " + value.getName() + ".");
+                Platform.runLater(() -> {
+                    users.clear();
+                    logger.fine(users.toString());//TODO
+                    users.add(value.getName());
+                    logger.log(Level.INFO, value.getName() + " added to list");
+                });
             }
 
             @Override
@@ -199,12 +210,11 @@ public class ChatClient {
             }
         };
         try {
-            asyncStub.syncPublicMessages(UserInfo.newBuilder().setName(user.getName()).build(), observer);
+            asyncStub.syncUserList(Empty.newBuilder().build(), observer);
         } catch (Exception e) {
             error(e.getMessage());
         }
     }
-
 
     public ObservableList<String> getPublicMessages() {
         return messagesPublic;

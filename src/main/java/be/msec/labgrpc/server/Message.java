@@ -92,8 +92,9 @@ public class Message {
         return "Message{" +
                 "sender=" + sender +
                 ", messageType=" + messageType +
-                ", group=" + receiver +
+                ", receiver=" + receiver +
                 ", timestamp=" + timestamp +
+                ", content=" + content +
                 '}';
     }
 

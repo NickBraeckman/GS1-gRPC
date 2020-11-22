@@ -19,7 +19,7 @@ service ChatService {
   /*  -------------------------------- GETTING MESSAGES -------------------------------- */
   rpc syncPublicMessages(UserInfo) returns (stream MessageText){}
   rpc syncPrivateMessages(UserInfo) returns (stream PrivateMessageText){} //TODO
-  rpc syncUserList(UserInfo) returns (stream MessageText){} //TODO
+  rpc syncUserList(Empty) returns (stream UserInfo){} //TODO
 
 }
 /*  -------------------------------- MESSAGES -------------------------------- */
