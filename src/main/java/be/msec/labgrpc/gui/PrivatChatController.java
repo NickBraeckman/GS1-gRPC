@@ -2,7 +2,9 @@ package be.msec.labgrpc.gui;
 
 import be.msec.labgrpc.client.ChatApplication;
 import be.msec.labgrpc.exceptions.UserNotFoundException;
+
 import javax.annotation.Nullable;
+
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -38,10 +40,22 @@ public class PrivatChatController {
 
         this.correspondent = ChatApplication.correspondent;
 
-        String loggedInAs = "Logged in as (" + ChatApplication.chatClient.getUser().toString() + ")";
-        String chattingTo = "your talking to (" + correspondent + ")";
-        chatTitle.setText(loggedInAs + " | " + chattingTo);
+/*
 
+        if (correspondent == null) {
+            send_button.setVisible(false);
+            setChatTitle("READ ONLY");
+        } else {
+            setChatTitle("your talking to (" + correspondent + ")");
+
+        }
+*/
+
+    }
+
+    private void setChatTitle(String s) {
+        String loggedInAs = "Logged in as (" + ChatApplication.chatClient.getUser().toString() + ")";
+        chatTitle.setText(loggedInAs + " | " + s);
     }
 
     /* ----------------------------- CONSTRUCTOR ----------------------------- */
@@ -50,6 +64,7 @@ public class PrivatChatController {
 
     public PrivatChatController(String correspondent) {
         this.correspondent = correspondent;
+
     }
 
     /* ----------------------------- SEND PRIVATE ----------------------------- */

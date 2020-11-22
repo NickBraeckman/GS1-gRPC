@@ -168,7 +168,14 @@ public class ChatApplication extends Application {
     }
 
     public static boolean askCloseCurrentChat(WindowEvent event) {
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION, "Do you want to close this private chat with " + correspondent + "?", ButtonType.YES, ButtonType.NO);
+        Alert alert ;
+        if (correspondent==null){
+            alert = new Alert(Alert.AlertType.CONFIRMATION, "Do you want to close this private chat with " + correspondent + "?", ButtonType.YES, ButtonType.NO);
+
+        }else {
+            alert = new Alert(Alert.AlertType.CONFIRMATION, "Do you want to close this READ ONLY privat chat ?", ButtonType.YES, ButtonType.NO);
+
+        }
         ButtonType result = alert.showAndWait().orElse(ButtonType.NO);
         if (ButtonType.NO.equals(result)) {
             event.consume();

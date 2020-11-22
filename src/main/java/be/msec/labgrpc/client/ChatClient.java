@@ -172,7 +172,7 @@ public class ChatClient {
                 Platform.runLater(() -> messagesPrivate.add(send + ":" + content));
                 break;
             case PUBLIC_MESSAGE_ID:
-                Platform.runLater(() -> messagesPublic.add(content));
+                Platform.runLater(() -> messagesPublic.add(send + ":" + content));
                 break;
         }
     }

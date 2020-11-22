@@ -43,6 +43,10 @@ public class PublicChatController {
     public PublicChatController() {
     }
 
+    public void openPrivateAction(){
+        ChatApplication.launchPrivateChat(null);
+    }
+
 
     /* ----------------------------- SEND BROADCAST ----------------------------- */
     public void sendBroadcastAction() throws IOException, UserNotFoundException {
