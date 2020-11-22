@@ -72,7 +72,7 @@ public class ChatServer {
     }
 
     public static void main(String[] args) throws IOException, InterruptedException {
-        ChatServer server = new ChatServer(1000);
+        ChatServer server = new ChatServer(1111);
         server.start();
         server.blockUntilShutdown();
     }

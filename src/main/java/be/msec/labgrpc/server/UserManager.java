@@ -61,8 +61,15 @@ public class UserManager {
         if (!messages.isEmpty()) {
             msg = messages.get(messages.size() - 1);
             // check if message is intended for user
-            if (msg.getType() == MessageType.BROADCAST || (msg.getType() == MessageType.PRIVATE && msg.getReceiverString() == userName)) {
+            boolean isBroadcast = msg.getType() == MessageType.BROADCAST;
+            boolean isPrivate = msg.getType() == MessageType.PRIVATE;
+            if (isBroadcast) {
                 return msg;
+            } else {
+                boolean isCorrectUser = msg.getReceiverString().contains(userName) || msg.getSender().toString().contains(userName);
+                if (isCorrectUser) {
+                    return msg;
+                }
             }
         } else {
             return null;

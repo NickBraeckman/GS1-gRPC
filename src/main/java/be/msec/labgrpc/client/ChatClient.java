@@ -139,7 +139,7 @@ public class ChatClient {
         StreamObserver<MessageText> observer = new StreamObserver<MessageText>() {
             @Override
             public void onNext(MessageText value) {
-                info("Public message received from " + value.getSender() + ".");
+                info("message received from " + value.getSender() + ".");
                 placeInRightMessageList(value.getText(), value.getSender());
             }
 
