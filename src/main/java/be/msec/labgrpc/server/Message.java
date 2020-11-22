@@ -7,6 +7,8 @@ import java.util.Date;
 import java.util.Objects;
 import java.util.Set;
 
+import static be.msec.labgrpc.server.ChatServer.*;
+
 public class Message {
 
     private User sender;
@@ -65,9 +67,9 @@ public class Message {
     public String getContent() {
         switch (messageType) {
             case BROADCAST:
-                return "[BROADCAST:" + sender.getName() + "]: " + content;
+                return PUBLIC_MESSAGE_ID + MESSAGE_TYPE_REGEX + sender.getName() + MESSAGE_TYPE_REGEX + content;
             case PRIVATE:
-                return "[PRIVATE:" + sender.getName() + "]: " + content;
+                return PRIVATE_MESSAGE_ID + MESSAGE_TYPE_REGEX + sender.getName() + MESSAGE_TYPE_REGEX + content;
             default:
                 return content;
         }

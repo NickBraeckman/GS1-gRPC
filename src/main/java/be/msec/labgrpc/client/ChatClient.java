@@ -164,11 +164,12 @@ public class ChatClient {
 
         String[] split = text.split(MESSAGE_TYPE_REGEX);
         String MESSAGE_ID = split[0];
-        String content = split[1];
+        String send = split[1];
+        String content = split[2];
 
         switch (MESSAGE_ID) {
             case PRIVATE_MESSAGE_ID:
-                Platform.runLater(() -> messagesPrivate.add(content));
+                Platform.runLater(() -> messagesPrivate.add(send + ":" + content));
                 break;
             case PUBLIC_MESSAGE_ID:
                 Platform.runLater(() -> messagesPublic.add(content));

@@ -13,10 +13,12 @@ import java.io.IOException;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import static be.msec.labgrpc.server.ChatServer.*;
+
 
 public class ChatServer {
-    public static final String PRIVATE_MESSAGE_ID = "[PRIVATE";
-    public static final String PUBLIC_MESSAGE_ID = "[BROADCAST";
+    public static final String PRIVATE_MESSAGE_ID = "PRIVATE";
+    public static final String PUBLIC_MESSAGE_ID = "PUBLIC";
     public static final String MESSAGE_TYPE_REGEX = ":";
 
     private static final Logger LOGGER = Logger.getLogger(ChatServer.class.getName());
@@ -119,7 +121,7 @@ public class ChatServer {
                 //GATHERING INFO
                 User sender = userManager.findUserByName(messageText.getSender());
                 //MESSAGE
-                Message msg = new Message(sender, MessageType.BROADCAST, PUBLIC_MESSAGE_ID+MESSAGE_TYPE_REGEX+messageText.getText());
+                Message msg = new Message(sender, MessageType.BROADCAST, messageText.getText());
                 userManager.addToMessages(msg, PUBLIC_MSG_MUTEX);
                 LOGGER.log(Level.INFO, msg.toString());
                 //RESPONSE OBSERVER
@@ -140,7 +142,7 @@ public class ChatServer {
                 User uReceiver = userManager.findUserByName(privateMessageText.getReceiver());
                 String sReceiver = uReceiver.toString();
                 //MESSAGE
-                Message msg = new Message(sender, MessageType.PRIVATE, PRIVATE_MESSAGE_ID+MESSAGE_TYPE_REGEX+mt.getText(), sReceiver);
+                Message msg = new Message(sender, MessageType.PRIVATE, mt.getText(), sReceiver);
                 userManager.addToMessages(msg, PUBLIC_MSG_MUTEX);
                 LOGGER.log(Level.INFO, msg.toString());
 
