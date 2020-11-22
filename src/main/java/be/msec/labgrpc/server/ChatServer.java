@@ -83,7 +83,7 @@ public class ChatServer {
         public void connectUser(UserInfo userInfo, StreamObserver<ConnectMessage> responseObserver) {
             try {
                 LOGGER.log(Level.INFO, userInfo.getName() + " is connecting to server.");
-                userManager.connectUser(userInfo.getName(),NEW_USER_MUTEX); //TODO user mutex
+                userManager.connectUser(userInfo.getName(), NEW_USER_MUTEX); //TODO user mutex
 
                 responseObserver.onNext(ConnectMessage.newBuilder().setUsername(userInfo.getName()).setIsConnected(true).build());
                 responseObserver.onCompleted();
@@ -99,7 +99,7 @@ public class ChatServer {
         public void disconnectUser(UserInfo userInfo, StreamObserver<DisconnectMessage> responseObserver) {
             try {
                 LOGGER.log(Level.INFO, userInfo.getName() + " is disconnecting from server.");
-                userManager.disconnectUser(userInfo.getName(),LEAVE_USER_MUTEX);
+                userManager.disconnectUser(userInfo.getName(), LEAVE_USER_MUTEX);
 
                 responseObserver.onNext(DisconnectMessage.newBuilder().setUsername(userInfo.getName()).setIsDisconnected(true).build());
                 responseObserver.onCompleted();
@@ -174,15 +174,17 @@ public class ChatServer {
                 }
                 // check if their is a message that belongs to the user
                 Message msg = userManager.getLastMessage(userInfo.getName());
-                info("Synchronize... : " + msg);
 
+                if (msg != null) {
+                    info("Synchronize... : " + msg);
 
-                responseObserver.onNext(
-                        MessageText
-                                .newBuilder()
-                                .setSender(msg.getSender().getName())
-                                .setText(msg.getContent()).build());
+                    responseObserver.onNext(
+                            MessageText
+                                    .newBuilder()
+                                    .setSender(msg.getSender().getName())
+                                    .setText(msg.getContent()).build());
 
+                }
             }
         }
 

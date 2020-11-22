@@ -183,7 +183,11 @@ public class ChatClient {
             public void onNext(UserInfo value) {
                 info("Public message received from " + value.getName() + ".");
                 Platform.runLater(() -> {
-                    users.add(value.getName());
+
+                    if(!users.contains(value.getName())){
+                        users.add(value.getName());
+                    }
+
                     logger.log(Level.INFO, value.getName() + " added to list");
                 });
             }

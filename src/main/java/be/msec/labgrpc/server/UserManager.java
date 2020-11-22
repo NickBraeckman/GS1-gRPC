@@ -22,6 +22,7 @@ public class UserManager {
             } else {
                 User user = new User(username);
                 users.put(username, user);
+                mutex.notifyAll();
             }
         }
     }
