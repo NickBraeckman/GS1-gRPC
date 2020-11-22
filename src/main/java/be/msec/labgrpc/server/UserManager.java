@@ -4,9 +4,18 @@ import be.msec.labgrpc.User;
 import be.msec.labgrpc.exceptions.DuplicateUsernameException;
 import be.msec.labgrpc.exceptions.UserNotFoundException;
 
+import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.*;
 
 public class UserManager {
+
+    private static final Logger logger = Logger.getLogger(UserManager.class.getName());
     private final List<Message> messages;
     private final Map<String, User> users;
 
