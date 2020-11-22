@@ -18,7 +18,7 @@ import java.util.logging.Logger;
 public class ChatServer {
     public static final String PRIVATE_MESSAGE_ID = "PRIVATE";
     public static final String PUBLIC_MESSAGE_ID = "PUBLIC";
-    public static final String MESSAGE_TYPE_REGEX = ":";
+    public static final String MESSAGE_TYPE_REGEX = ": ";
 
     private static final Logger LOGGER = Logger.getLogger(ChatServer.class.getName());
     private static final Object MSG_MUTEX = new Object();
@@ -72,7 +72,7 @@ public class ChatServer {
     }
 
     public static void main(String[] args) throws IOException, InterruptedException {
-        ChatServer server = new ChatServer(1111);
+        ChatServer server = new ChatServer(1000);
         server.start();
         server.blockUntilShutdown();
     }
