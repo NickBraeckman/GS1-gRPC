@@ -42,11 +42,6 @@ public class ChatApplication extends Application {
         if (chatApplication == null) chatApplication = this;
         ClassLoader classLoader = this.getClass().getClassLoader();
 
-//TODO
-/*        loginFXML = classLoader.getResource("file:/gui/PublicChat.fxml");
-        publicFXML = classLoader.getResource("file:gui/PublicChat.fxml");
-        privateFXML = classLoader.getResource("be/msec/labgrpc/gui/PrivateChat.fxml");*/
-
         loginFXML = new URL("file:src/main/java/be/msec/labgrpc/gui/LoginForm.fxml");
         publicFXML = new URL("file:src/main/java/be/msec/labgrpc/gui/PublicChat.fxml");
         privateFXML = new URL("file:src/main/java/be/msec/labgrpc/gui/PrivateChat.fxml");
